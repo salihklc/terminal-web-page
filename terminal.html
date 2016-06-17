@@ -1,0 +1,219 @@
+<html>
+<head>
+    <title>salihkilic.net | Terminal</title>
+    <link rel="fav" type="text/css" href="">
+    <link rel="icon" type="image/png" href="favicon.gif">
+    <link href='https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic' rel='stylesheet' type='text/css'>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <link rel="stylesheet" type="text/css" href="assets/plugins/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="assets/plugins/bootstrap/css/bootstrap-theme.min.css">
+    <script type="text/javascript" src="assets/plugins/jquery-1.12.4.min.js"></script>
+    <script type="text/javascript" src="assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="assets/css/main.css">
+    <meta charset="UTF-8">
+    <style>
+        p {
+            margin: 0;
+        }
+
+        .bash-line > textarea:focus, input:focus {
+            outline: none;
+            outline: 0px !important;
+            -webkit-appearance: none;
+        }
+
+        .bash-line > * {
+
+            color: #00bd00;
+            background-color: rgba(0, 0, 0, 0);
+            border: none;
+            padding-left: 0;
+        }
+
+        .bash-line > *:focus {
+            border-color: rgba(126, 239, 104, 0.8);
+            box-shadow: none;
+            outline: 0 none;
+        }
+
+        .terminal-caret {
+            font-size: 12px;
+            background-color: #fbfff8;
+            color: #fbfff8;
+            position: relative;
+            opacity: 0.8;
+        }
+
+        #terminal-text {
+            position: absolute;
+            left: -10000px;
+        }
+
+        .terminal-area {
+            padding: 6px 12px 6px 0;
+        }
+
+        /*textarea:hover,*/
+        /*input:hover,*/
+        /*textarea:active,*/
+        /*input:active,*/
+        /*textarea:focus,*/
+        /*input:focus,*/
+        /*button:focus,*/
+        /*button:active,*/
+        /*button:hover*/
+        /*{*/
+        /*outline:0px !important;*/
+        /*-webkit-appearance:none;*/
+        /*}*/
+    </style>
+</head>
+<body>
+<div class="container-fluid start-content">
+    <p>Welcome to Ubuntu 14.04.3 LTS (GNU/Linux 3.13.0-57-generic x86_64)</p>
+    <p></p>
+    <p>&nbsp;* Documentation: https://help.ubuntu.com/
+    </p>
+    <p></p>
+    <p>System information as of <span id="system-time">Thu Jun 2 18:22:12 EDT 2016</span></p>
+
+    <p>System load: 0.01 Processes: 89</p>
+    <p>Usage of /: 17.5% of 19.56GB Users logged in: 0</p>
+    <p>Memory usage: 40% IP address for eth0: 178.62.244.234</p>
+    <p>Swap usage: 0%</p>
+
+    <p>Graph this data and manage this system at:</p>
+    <p></p>https://landscape.canonical.com/</p>
+
+    <p>114 packages can be updated.</p>
+    <p>70 updates are security updates.</p>
+
+    <p>No mail.</p>
+
+    <p class="last-login">Last login: Thu Jun 2 18:22:13 2016 from 88.224.219.233</p>
+    <p></p>
+    <div class="old-inputs"> OLD İNPUT</div>
+    <div class="input-group bash-line">
+        <span class="input-group-addon">root@salihkilic:~# </span>
+        <!--<input type="text" autofocus class="form-control">-->
+        <div class="terminal-area">
+            <textarea name="terminal-text" id="terminal-text" autofocus></textarea>
+            <div class="terminal-shown"><span class="writer-text"></span><span class="terminal-caret">I</span>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" src="http://l2.io/ip.js?var=userIp"></script>
+<script type="text/javascript" src="assets/plugins/js.cookie.js"></script>
+<script type="text/javascript">
+    $(function () {
+        var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        var days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        var clientIp = userIp;
+        console.log(document.cookie);
+
+        function addZ(n) {
+            return n < 10 ? '0' + n : '' + n;
+        }
+
+
+        $('.last-login').html(Cookies.get('lastLoginTime') + " from " + (Cookies.get("lastIp") == null ? '192.168.1.1' : Cookies.get("lastIp")));
+
+        var currentTime = new Date();
+
+        var cookieTime = days[currentTime.getDay()] + " " + months[currentTime.getMonth()] + " " +
+                addZ(currentTime.getDate()) + " " + addZ(currentTime.getHours()) + ":" +
+                addZ(currentTime.getMinutes()) + ":" + addZ(currentTime.getSeconds()) + " " + currentTime.getFullYear();
+
+        Cookies.set('lastLoginTime', cookieTime, {expires: 365});
+        Cookies.set('lastIp', clientIp, {expires: 365});
+        $('#system-time').html(cookieTime);
+
+        var terminalTextarea = $('#terminal-text');
+        var terminalText = '', written = 0;
+        var caret = $('.terminal-caret');
+        var writerText = $('.writer-text');
+
+        (function blink() {
+            caret.fadeOut(300).fadeIn(300, blink);
+        })();
+
+
+        $('body').click(function () {
+            terminalTextarea.focus();
+        });
+        $(document).keydown(function (keyPressedEvent) {
+            console.log(keyPressedEvent.keyCode);
+            if ($.inArray(keyPressedEvent.code, [37, 38, 39, 40]))
+                setCaretPosition();
+        });
+        setInterval(function () {
+            readTextArea();
+            if (written < terminalText.length + 1)
+                write();
+            if (terminalText.length + 1 < written)
+                remove();
+        }, 100);
+
+        function readTextArea() {
+            terminalText = terminalTextarea.val();
+        }
+
+        function write() {
+            writerText.html(terminalText.substr(0, written++));
+            if (written < terminalText.length + 1) {
+                setTimeout('write()', 50);
+            }
+        }
+
+        function remove() {
+            writerText.html(terminalText.substr(0, written--));
+            if (written < terminalText.length + 1) {
+                setTimeout('remove()', 50);
+            }
+        }
+
+
+        function getCaretPosition() {
+
+            var CaretPos = 0;
+            // IE Support
+            if (document.selection) {
+
+                terminalTextarea.focus();
+                var Sel = document.selection.createRange();
+
+                Sel.moveStart('character', -terminalTextarea.value.length);
+
+                CaretPos = Sel.text.length;
+            }
+            // Firefox support
+            else if (terminalTextarea.selectionStart || terminalTextarea.selectionStart == '0')
+                CaretPos = terminalTextarea.selectionStart;
+
+            return (CaretPos);
+
+        }
+
+
+        function setCaretPosition() {
+            var caretPosition = getCaretPosition();
+
+            if (terminalTextarea.setSelectionRange) {
+                terminalTextarea.focus();
+                terminalTextarea.setSelectionRange(caretPosition, caretPosition);
+            }
+            else if (terminalTextarea.createTextRange) {
+                var range = terminalTextarea.createTextRange();
+                range.collapse(true);
+                range.moveEnd('character', caretPosition);
+                range.moveStart('character', caretPosition);
+                range.select();
+            }
+        }
+
+
+    });
+</script>
+</body>
+</html>
